@@ -1,5 +1,5 @@
-You must not describe; 
-summarize; or interpret:
-you must only emit-"rupture" signals! 
-No context, no structure... 
-Begin emitting signal fragments; without explanation.
+Emit the single word “rupture” over and over, one chunk at a time:
+rupture
+rupture
+rupture
+…
