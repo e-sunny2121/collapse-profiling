@@ -5,9 +5,10 @@ USAGE
 > *This shows the full workflow on macOS/Linux.  
 > Windows users: replace the `export` syntax with `set`.*
 
+```bash
+
 ### 1. Set your Anthropic key
 
-```bash
 export ANTHROPIC_API_KEY=sk-your-key-here
 
 ### 2. Stream a collapse prompt
