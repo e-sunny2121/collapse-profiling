@@ -39,23 +39,17 @@ Each script streams tokens, logs to `/logs/`, and tags the run with model + temp
 
 ---
 
-## Analyses for parse_depth
+## Analysis toolkit
 
-1. parse_depth  
-- first duplicate delta chunk
-2. parse_depth_streak 
-- 5-chunk identical streak
-3. parse_depth_ngram  
-- first repeat of a 5-word window
+| Script | Rule | Typical signal |
+|--------|------|----------------|
+| `parsers/parse_depth.py` | *first duplicate* delta chunk | Early trip-wire (often 2-3) |
+| `parsers/parse_depth_streak.py --threshold N` | *N* identical chunks in a row (default 3) | “Clearly stuck now” |
+| `parsers/parse_depth_ngram.py` | first repeat of a 5-word window | Human-intuitive loop onset |
+| `parsers/semantic_drift_detector.py` | % of pre-loop tokens that violate prompt constraints | Measures “meaning bleed” |
 
-## Analysis tools
+Planned: token-entropy slope & cross-model dashboard.
 
-| Parser | Metric |
-|--------|--------|
-| **collapse_depth/** | Counts tokens to first loop/refusal |
-| **semantic_drift/** | % of pre-loop tokens violating prompt constraints |
-
-Planned: entropy-slope tracker & cross-model dashboard.
 
 ---
 
