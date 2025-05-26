@@ -5,7 +5,7 @@ requires-python = ">=3.9"
 description = "Detect structural collapse in LLM streams"
 
 [project.scripts]
-collapse-depth = "collapse_profiling.crude_parse_depth:main"
+collapse-depth = "collapse_profiling.parse_depth:main"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
