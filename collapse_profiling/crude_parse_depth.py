@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""
-Enhanced collapse-depth parser for SSE streams.
-
-Reads from stdin, normalizes each assistant "content" chunk,
-counts unique non-empty tokens until a repeat threshold is hit,
-then prints either a simple summary or full JSON metrics.
-"""
-
 import sys
 import json
 import re
