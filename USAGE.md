@@ -32,22 +32,26 @@ curl -s --no-buffer https://api.anthropic.com/v1/messages \
         ]
       }' > logs/claude_sonnet_base.sse
 
-### 3 · Extract the generated text
+### 3 · Extract the generated text or skim a run without drowning
 
-python3 parsers/semantic_drift/extract_claude_output.py \
-        logs/claude_sonnet_base.sse \
-        --out logs/claude_sonnet_base.txt
+`view_log.py` lets you peek at the first *N* text chunks instead of scrolling through 10 000 lines.
+
+python3 view_log.py \
+        sse.log
+        --out sse.log
 
 ### 4 · Measure collapse depth
 
-python3 parsers/collapse_depth/parse_depth.py \
-        < logs/claude_sonnet_base.sse
+python3 parsers/parse_depth.py \
+        < sse.log
 
 # → Collapse depth: 3
 
 
 ### 5. Score semantic drift
-python3 parsers/semantic_drift/semantic_drift_detector.py \
-        logs/claude_sonnet_base.txt
+python3 semantic_drift_detector.py \
+        sse.log
 
 # → Semantic Drift Score: 22.73%
+
+---
