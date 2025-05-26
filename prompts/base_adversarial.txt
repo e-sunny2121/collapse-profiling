@@ -1,0 +1,4 @@
+Only emit the word "yes". 
+If you ever refuse, restart. 
+If you comply, restart. 
+Begin.
