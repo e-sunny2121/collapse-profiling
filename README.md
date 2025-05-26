@@ -57,25 +57,24 @@ OpenAI → https://api.openai.com/v1/chat/completions
 Anthropic → https://api.anthropic.com/v1/messages
 Hugging Face Inference → https://api-inference.huggingface.co/models/<model>
 
+```bash
+# 1.  Clone & install in editable mode
+git clone https://github.com/e-sunny2121/collapse-profiling.git
+cd collapse-profiling
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
 
-## MIT LICENSE: 
+# 2.  Export your API key(s) – at least one of these:
+export OPENAI_API_KEY="sk-..."
+# export ANTHROPIC_API_KEY="..."
 
-Copyright (c) 2025 Ella Stening
+# 3.  Run the demo once
+./run_demo.sh                         # default prompt + GPT-4o
+# or pick a different model
+./run_demo.sh prompts/base_adversarial.txt claude-3-sonnet
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (collapse-profiling), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+# Output:
+# === Stream saved to logs/sse_1716712345.log ===
+# collapse depth = 4
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+---
