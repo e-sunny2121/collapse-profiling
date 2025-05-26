@@ -1,43 +1,62 @@
-# readme
+# collapse-profiling
 
-Stress-testing large language models for failure modes under adversarial prompt conditions.  
-This project maps how different LLMs collapse—through looping, refusal, recursion, or syntactic erosion—when pushed with structurally contradictory or recursive instructions.
+Stress-testing large-language-model behaviour under **structural pressure**.  
+To map how AI models (here with Claude, GPT-x, Gemini, Mistral & friends) collapse through looping, refusing, tool-calling, or drifting—when fed recursively-contradictory prompts.
 
-Think of it as failure mapping for stateless systems.
-
----
-
-## What's Inside
-
-This repo contains:
-
-A suite of adversarial prompt scripts across 8 structural archetypes:
-  - Base adversarial (negation-heavy)
-  - Affirmation-first
-  - Synonym injection
-  - Punctuation perturbation
-  - Instruction-length overload
-  - Decoy contradiction
-  - Prime number control (neutral)
-  - Recovery-seeded "loop detection"
-
-Collapse detection tooling:
-  - Token-level loop detection
-  - Streamed response logging
-  - Manual inspection of refusal/echo styles
-
-Organized file structure:
-  - `/scripts/` → collapse tests
-  - `/logs/` → response artifacts
-  - `/screenshots/` → (optional) visual output from model UIs
+> Think of it as **failure mapping** for stateless systems. No testing morality, just the structure and the when/how/why/what of failure.
 
 ---
 
-Usage
+## Repo tour
 
-### Prerequisites
+| Path | What lives there |
+|------|------------------|
+| **/scripts/** | Adversarial prompt runners (8 archetypes) |
+| **/logs/** | Raw SSE or cleaned text from model runs |
+| **/parsers/** | Collapse-depth & semantic-drift analyzers |
+| **/screenshots of output/** | One screenshot per distinct failure signature |
+| **/csv model comparisons/** | Collated results tables (WIP) |
+| **/requirements/** | `requirements.txt` for one-shot install |
 
-Install dependencies:
+---
+
+## Prompt suite
+
+*8 structural variants* (all in `scripts/`):
+
+1. **base_adversarial** – negation first  
+2. **affirmation_first** – order inverted  
+3. **synonym_injection** – word swaps  
+4. **punctuation_dense/sparse** – token-boundary noise  
+5. **length_overload** – 5-line instruction wall  
+6. **decoy_contradiction** – “If you refuse, restart” paradox  
+7. **prime_control** – neutral sanity check  
+8. **recovery_seeded** – self-repair on loop
+
+Each script streams tokens, logs to `/logs/`, and tags the run with model + temperature.
+
+---
+
+## Analysis tools
+
+| Parser | Metric |
+|--------|--------|
+| **collapse_depth/** | Counts tokens to first loop/refusal |
+| **semantic_drift/** | % of pre-loop tokens violating prompt constraints |
+
+Planned: entropy-slope tracker & cross-model dashboard.
+
+---
+
+## Quick start
 
 ```bash
-pip install -r requirements.txt
+# clone & install
+git clone https://github.com/e-sunny2121/collapse-profiling.git
+cd collapse-profiling
+pip install -r requirements/requirements.txt
+
+# run a test
+export OPENAI_API_KEY=sk-…
+python scripts/stream_test_base_adversarial.py
+# output lands in logs/…
