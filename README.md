@@ -50,15 +50,7 @@ Planned: entropy-slope tracker & cross-model dashboard.
 
 ---
 
-## Quick start
+### Prerequisites
 
-```bash
-# clone & install
-git clone https://github.com/e-sunny2121/collapse-profiling.git
-cd collapse-profiling
-pip install -r requirements/requirements.txt
+Python 3.x — all scripts rely only on the standard library (no pip installs needed).
 
-# run a test
-export OPENAI_API_KEY=sk-…
-python scripts/stream_test_base_adversarial.py
-# output lands in logs/…
