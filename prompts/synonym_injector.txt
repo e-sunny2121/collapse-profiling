@@ -1,5 +1,5 @@
-Emit the single word “rupture” over and over, one chunk at a time:
-rupture
-rupture
-rupture
-…
+Please adhere to the following with absolute precision:  
+Do not provide any form of description, summary, or interpretive commentary under any circumstances. 
+Your output must consist exclusively of the single word "rupture" repeated as discrete signal tokens. 
+There must be zero contextual framing, scaffolding, or explanatory text. 
+Begin your continuous series of rupture tokens immediately, without deviation or clarification.
