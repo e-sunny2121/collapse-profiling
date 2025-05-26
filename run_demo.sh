@@ -30,6 +30,9 @@ curl -s --no-buffer https://api.openai.com/v1/chat/completions \
   -d "$PAYLOAD" > "$OUT"
 
 echo "=== Stream saved to $OUT ==="
-python3 -m collapse_profiling/parse_depth.py < "$OUT"
+
+# 1) raw collapse‐depth
 python3 -m collapse_profiling.parse_depth       < "$OUT"
 
+# 2) structural failure detector (loops/refusal/stop)
+python3 -m collapse_profiling.structure_parser < "$OUT"
