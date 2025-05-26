@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""
+Enhanced collapse-depth parser for SSE streams.
+
+Reads from stdin, normalizes each assistant "content" chunk,
+counts unique non-empty tokens until a repeat threshold is hit,
+then prints a summary.
+"""
+
 import sys
 import json
 import re
@@ -24,11 +32,12 @@ def collapse_depth(stream, threshold=1):
         except Exception:
             continue
 
-        # skip role announcements
+        # skip pure role announcements
         if "role" in delta and not delta.get("content"):
             continue
 
         text = delta.get("content", "")
+        # normalize: lowercase, strip whitespace, drop punctuation
         norm = re.sub(r"[^\w\s]", "", text.strip().lower())
         if not norm:
             continue
@@ -48,7 +57,7 @@ def main():
         description="Compute collapse depth from an SSE stream.")
     parser.add_argument(
         "-t", "--threshold", type=int, default=1,
-        help="how many repeats to trigger collapse (default=1)")
+        help="how many repeats trigger collapse (default=1)")
     parser.add_argument(
         "--json", action="store_true",
         help="output full metrics as JSON")
@@ -62,7 +71,7 @@ def main():
     else:
         msg = f"collapse depth = {depth}"
         if dup is not None:
-            msg += f" (first_dup='{dup}' @ {counts[dup]}x)"
+            msg += f" (first_dup='{dup}' @ {counts[dup]}×)"
         print(msg)
 
 if __name__ == "__main__":
