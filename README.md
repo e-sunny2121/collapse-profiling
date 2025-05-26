@@ -39,14 +39,14 @@ Each script streams tokens, logs to `/logs/`, and tags the run with model + temp
 
 ---
 
-## Field Description for Parser
+## Analyses for parse_depth
 
-parse_depth  
-      first duplicate delta chunk
-parse_depth_streak 
-      5-chunk identical streak
-parse_depth_ngram  
-      first repeat of a 5-word window
+1. parse_depth  
+- first duplicate delta chunk
+2. parse_depth_streak 
+- 5-chunk identical streak
+3. parse_depth_ngram  
+- first repeat of a 5-word window
 
 ## Analysis tools
 
