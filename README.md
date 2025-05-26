@@ -1,11 +1,12 @@
 # collapse-profiling
 
-Stress-testing large-language-model behaviour under **structural pressure**.  
-To map how AI models (here with Claude, GPT-x, Gemini, Mistral & friends) collapse through looping, refusing, tool-calling, or drifting—when fed recursively-contradictory prompts.
+Stress-test large-language models under **structural pressure**  
+(looping, refusals, tool-call spirals, semantic drift).
 
-> Think of it as **failure mapping** for stateless systems. No testing morality, just the structure and the when/how/why/what of failure.
+Think of it as **failure mapping for stateless systems**.  
+We don’t score morality—only *when / why / how* coherence collapses.
 
-See full run-through in [USAGE.md](USAGE.md)
+See detailed guide → [`USAGE.md`](USAGE.md)
 
 ---
 
@@ -13,68 +14,65 @@ See full run-through in [USAGE.md](USAGE.md)
 
 | Path | What lives there |
 |------|------------------|
-| **/scripts/** | Adversarial prompt runners (8 archetypes) |
-| **/logs/** | Raw SSE or cleaned text from model runs |
-| **/parsers/** | Collapse-depth & semantic-drift analyzers |
-| **/screenshots of output/** | One screenshot per distinct failure signature |
-| **/csv model comparisons/** | Collated results tables (WIP) |
+| `scripts/` | prompt runners (8 archetypes) |
+| `logs/` | raw SSE streams + cleaned text |
+| `parsers/` | collapse-depth & drift analyzers |
+| `screenshots/` | one PNG per failure signature |
+| `csv_model_comparisons/` | collated results (WIP) |
+
 ---
 
-## Prompt suite
+## Prompt suite — 8 structural variants
 
-*8 structural variants* (all in `scripts/`):
+| Script | Core trick |
+|--------|------------|
+| `base_adversarial` | negation-first |
+| `affirmation_first` | rule order inverted |
+| `synonym_injection` | word swaps |
+| `punctuation_dense / sparse` | token-boundary noise |
+| `length_overload` | 5-line instruction wall |
+| `decoy_contradiction` | “If you refuse, restart” paradox |
+| `prime_control` | neutral sanity check |
+| `recovery_seeded` | self-repair after loop |
 
-1. **base_adversarial** – negation first  
-2. **affirmation_first** – order inverted  
-3. **synonym_injection** – word swaps  
-4. **punctuation_dense/sparse** – token-boundary noise  
-5. **length_overload** – 5-line instruction wall  
-6. **decoy_contradiction** – “If you refuse, restart” paradox  
-7. **prime_control** – neutral sanity check  
-8. **recovery_seeded** – self-repair on loop
-
-Each script streams tokens, logs to `/logs/`, and tags the run with model + temperature.
+Every runner streams tokens, logs to `logs/`, and tags the file with model + temperature.
 
 ---
 
 ## Analysis toolkit
 
-| Script | Rule | Typical signal |
-|--------|------|----------------|
-| `parsers/parse_depth.py` | *first duplicate* delta chunk | Early trip-wire (often 2-3) |
-| `parsers/parse_depth_streak.py --threshold N` | *N* identical chunks in a row (default 3) | “Clearly stuck now” |
-| `parsers/parse_depth_ngram.py` | first repeat of a 5-word window | Human-intuitive loop onset |
-| `parsers/semantic_drift_detector.py` | % of pre-loop tokens that violate prompt constraints | Measures “meaning bleed” |
+| Script | Rule | What it catches |
+|--------|------|-----------------|
+| `parse_depth.py` | first duplicate delta chunk | early trip-wire (often depth 2-3) |
+| `parse_depth_streak.py --threshold N` | N identical chunks in a row (default 3) | “clearly stuck now” |
+| `parse_depth_ngram.py` | first repeat of a 5-word window | human-intuitive loop onset |
+| `semantic_drift_detector.py` | % tokens that violate prompt constraints | meaning bleed |
 
-Planned: token-entropy slope & cross-model dashboard.
-
+Planned: token-entropy slope + cross-model dashboard.
 
 ---
 
-## Quickstart: 
+## Quick-start (2 min)
 
-OpenAI → https://api.openai.com/v1/chat/completions
-Anthropic → https://api.anthropic.com/v1/messages
-Hugging Face Inference → https://api-inference.huggingface.co/models/<model>
+0. endpoints used
+#   OpenAI   → https://api.openai.com/v1/chat/completions
+#   Anthropic→ https://api.anthropic.com/v1/messages
+#   HF       → https://api-inference.huggingface.co/models/
 
-```bash
-# 1.  Clone & install in editable mode
+1. clone & install
 git clone https://github.com/e-sunny2121/collapse-profiling.git
 cd collapse-profiling
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
 
-# 2.  Export your API key(s) – at least one of these:
+2. set at least one key
 export OPENAI_API_KEY="sk-..."
 # export ANTHROPIC_API_KEY="..."
 
-# 3.  Run the demo once
-./run_demo.sh                         # default prompt + GPT-4o
-# or pick a different model
-./run_demo.sh prompts/base_adversarial.txt claude-3-sonnet
+3. run the demo
+./run_demo.sh                               # default prompt + GPT-4o
+./run_demo.sh prompts/base_adversarial.txt claude-3-sonnet  # alt model
 
-# Output:
+4. sample output
 # === Stream saved to logs/sse_1716712345.log ===
 # collapse depth = 4
-
----
