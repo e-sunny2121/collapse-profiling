@@ -18,8 +18,6 @@ See full run-through in [USAGE.md](USAGE.md)
 | **/parsers/** | Collapse-depth & semantic-drift analyzers |
 | **/screenshots of output/** | One screenshot per distinct failure signature |
 | **/csv model comparisons/** | Collated results tables (WIP) |
-| **/requirements/** | `requirements.txt` for one-shot install |
-
 ---
 
 ## Prompt suite
@@ -53,7 +51,31 @@ Planned: token-entropy slope & cross-model dashboard.
 
 ---
 
-### Prerequisites
+## Quickstart: 
 
-Python 3.x — all scripts rely only on the standard library (no pip installs needed).
+OpenAI → https://api.openai.com/v1/chat/completions
+Anthropic → https://api.anthropic.com/v1/messages
+Hugging Face Inference → https://api-inference.huggingface.co/models/<model>
 
+
+## MIT LICENSE: 
+
+Copyright (c) 2025 Ella Stening
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (collapse-profiling), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
