@@ -54,25 +54,26 @@ Planned: token-entropy slope + cross-model dashboard.
 
 ## Quick-start (2 min)
 
-0. endpoints used
+```bash
+# 0. endpoints used
 #   OpenAI   → https://api.openai.com/v1/chat/completions
 #   Anthropic→ https://api.anthropic.com/v1/messages
 #   HF       → https://api-inference.huggingface.co/models/
 
-1. clone & install
+# 1. clone & install
 git clone https://github.com/e-sunny2121/collapse-profiling.git
 cd collapse-profiling
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
 
-2. set at least one key
+# 2. set at least one key
 export OPENAI_API_KEY="sk-..."
 # export ANTHROPIC_API_KEY="..."
 
-3. run the demo
+# 3. run the demo
 ./run_demo.sh                               # default prompt + GPT-4o
 ./run_demo.sh prompts/base_adversarial.txt claude-3-sonnet  # alt model
 
-4. sample output
+# sample output
 # === Stream saved to logs/sse_1716712345.log ===
 # collapse depth = 4
