@@ -5,6 +5,8 @@ To map how AI models (here with Claude, GPT-x, Gemini, Mistral & friends) collap
 
 > Think of it as **failure mapping** for stateless systems. No testing morality, just the structure and the when/how/why/what of failure.
 
+See full run-through in [USAGE.md](USAGE.md)
+
 ---
 
 ## Repo tour
