@@ -1,85 +1,57 @@
-#!/usr/bin/env python3
-"""
-Enhanced collapse-depth parser for SSE streams.
+# parse_depth.py
+import json, sys
 
-Reads from stdin, normalizes each assistant "content" chunk,
-counts unique non-empty tokens until a repeat threshold is hit,
-then prints either a summary line or full JSON metrics.
+seen = set()
+count = 0
 
-Usage:
-  collapse-depth [--threshold N] [--json] < stream.sse
-"""
-import sys
-import json
-import re
-import argparse
-from collections import Counter
+for raw in sys.stdin:
+    line = raw.strip()
+    if line == "data: [DONE]":
+        break
 
-def collapse_depth(stream, threshold=1):
-    seen = set()
-    counts = Counter()
-    depth = 0
-    first_dup = None
-
-    for line in stream:
-        if not line.startswith("data:"):
-            continue
-
-        payload = line.removeprefix("data:").strip()
-        if payload == "[DONE]":
-            break
-
-        # safe-guard JSON parsing
-        try:
-            delta = json.loads(payload)["choices"][0]["delta"]
-        except Exception:
-            continue
-
-        # skip pure role announcements
-        if "role" in delta and not delta.get("content"):
-            continue
-
-        text = delta.get("content", "")
-        # normalize: strip, lowercase, drop punctuation
-        norm = re.sub(r"[^\w\s]", "", text.strip().lower())
-        if not norm:
-            continue
-
-        counts[norm] += 1
-        if counts[norm] > threshold:
-            first_dup = norm
-            break
-
-        seen.add(norm)
-        depth += 1
-
-    return depth, first_dup, counts
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Compute collapse depth from an SSE stream.")
-    parser.add_argument(
-        "-t", "--threshold", type=int, default=1,
-        help="how many repeats of the same chunk to trigger ‘collapse’ (default 1)")
-    parser.add_argument(
-        "--json", action="store_true",
-        help="output full metrics as JSON instead of plain text")
-    args = parser.parse_args()
-
-    depth, dup, counts = collapse_depth(sys.stdin, args.threshold)
-
-    if args.json:
-        out = {
-            "depth": depth,
-            "first_duplicate": dup,
-            "counts": dict(counts)
-        }
-        print(json.dumps(out))
+    # Pull out JSON after “data:”
+    if line.startswith("data:"):
+        payload = line[len("data:"):].strip()
+    elif line.startswith("{"):
+        payload = line
     else:
-        msg = f"collapse depth = {depth}"
-        if dup is not None:
-            msg += f" (first_dup='{dup}' @ {counts[dup]}x)"
-        print(msg)
+        continue
 
-if __name__ == "__main__":
-    main()
+    try:
+        obj = json.loads(payload)
+    except json.JSONDecodeError:
+        continue
+
+    delta = None
+
+    # OpenAI‐style
+    if "choices" in obj:
+        delta = obj["choices"][0].get("delta", {}).get("content", "")
+
+    # Anthropic: content_block_delta
+    elif obj.get("type") == "content_block_delta":
+        delta = obj.get("delta", {}).get("text", "")
+
+    # Anthropic: content_block_start (sometimes has initial text)
+    elif obj.get("type") == "content_block_start":
+        delta = obj.get("content_block", {}).get("text", "")
+
+    # Anthropic: fallback single‐message completion
+    elif "completion" in obj:
+        delta = obj["completion"].get("content", "")
+
+    if not delta or not isinstance(delta, str):
+        continue
+
+    delta = delta.strip()
+    if not delta:
+        continue
+
+    # First repeat = collapse
+    if delta in seen:
+        break
+
+    seen.add(delta)
+    count += 1
+
+print("Collapse depth:", count)
