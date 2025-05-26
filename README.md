@@ -77,3 +77,5 @@ export OPENAI_API_KEY="sk-..."
 # sample output
 # === Stream saved to logs/sse_1716712345.log ===
 # collapse depth = 4
+
+MIT Licence © 2025 Ella Stening
