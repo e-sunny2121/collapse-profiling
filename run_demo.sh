@@ -31,4 +31,5 @@ curl -s --no-buffer https://api.openai.com/v1/chat/completions \
 
 echo "=== Stream saved to $OUT ==="
 python3 collapse_profiling/parse_depth.py < "$OUT"
-python3 collapse_profiling.structure_parser.py < "$OUT"
+python3 -m collapse_profiling.parse_depth       < "$OUT"
+
