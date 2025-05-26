@@ -1,21 +1,3 @@
-#!/usr/bin/env python3
-"""
-structural_parser.py
-
-Read an SSE stream, then emit the first structural failure you see:
-  - loop: when a chunk repeats over threshold
-  - refusal: when a refusal phrase shows up
-  - stop: when finish_reason=="stop" with no loops/refusal first
-  - drift: when a semantic check fails (hook in your semantic_drift_detector)
-  - tool-call: when a "tool" delta appears
-
-Prints a JSON object:
-  {"mode":"loop"|"refusal"|...,
-   "depth":<num_chunks_seen>,
-   "token":<the chunk that triggered it>,
-   "extra":{…}}
-"""
-
 import sys, json, re, argparse
 from collections import Counter
 

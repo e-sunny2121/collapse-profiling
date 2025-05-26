@@ -6,7 +6,7 @@ description = "Detect structural collapse in LLM streams"
 
 [project.scripts]
 collapse-depth = "collapse_profiling.parse_depth:main"
-struct-fail  = "collapse_profiling.structure_parser:main"
+struct-fail    = "collapse_profiling.structure_parser:main"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
