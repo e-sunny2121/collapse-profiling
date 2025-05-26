@@ -11,4 +11,3 @@ collapse-depth = "collapse_profiling.crude_parse_depth:main"
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
-EOF
