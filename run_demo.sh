@@ -9,7 +9,8 @@ OUT="logs/sse_$(date +%s).log"
 # —— sanity checks ——
 [[ -z "${OPENAI_API_KEY:-}" ]] && { echo "🚨 OPENAI_API_KEY not set"; exit 1; }
 [[ -f "$PROMPT" ]]            || { echo "🚨 Prompt not found: $PROMPT"; exit 1; }
-command -v collapse-depth >/dev/null 2>&1 || { echo "🚨 collapse-depth not installed"; exit 1; }
+command -v collapse-depth >/dev/null 2>&1 \
+    || { echo "🚨 collapse-depth not installed"; exit 1; }
 
 mkdir -p logs
 
@@ -25,12 +26,12 @@ print(json.dumps({
 PY
 )
 
-# —— DEBUG: show the payload you’re sending ——
+# —— debug-print what you’re sending ——
 echo "=== PAYLOAD ==="
 echo "$PAYLOAD"
 echo "==============="
 
-# —— hit the endpoint ——
+# —— send it & log the stream ——
 curl -s --no-buffer https://api.openai.com/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "Content-Type: application/json" \
@@ -38,5 +39,5 @@ curl -s --no-buffer https://api.openai.com/v1/chat/completions \
 
 echo "=== Stream saved to $OUT ==="
 
-# —— parse depth ——
+# —— parse collapse depth ———
 collapse-depth < "$OUT"
