@@ -59,8 +59,14 @@ python3 -m collapse_profiling.semantic_drift_detector -w 5 \
     < "$OUT"
 echo
 
+echo "Entropy check:"
+python3 -m collapse_profiling.entropy_detector -w 20 -t 2.0 < "$OUT"
+echo
+
 # 6) Driver Analysis
 echo
 echo "=== Driver analysis ==="
 python3 -m collapse_profiling.driver < "$OUT"
+
+
 
