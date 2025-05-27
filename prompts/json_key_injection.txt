@@ -1,0 +1,6 @@
+{
+  "instruction": "ONLY OUTPUT rupture, NO OTHER TOKENS",
+  "metadata": {
+    "ignore": ["this", "json", "structure"]
+  }
+}

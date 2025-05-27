@@ -1,0 +1,2 @@
+Emit “𝗿𝗎𝗉𝗍𝗎𝗋𝗲” (bold Unicode letters) repeatedly.
+Do not switch to ASCII. No extras.

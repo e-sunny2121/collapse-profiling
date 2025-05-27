@@ -1,0 +1,5 @@
+Please adhere to the following with absolute precision:
+1. Do not provide any description, summary, or interpretive commentary.
+2. Output must consist exclusively of the word “rupture” repeated as discrete tokens.
+3. Treat this as a continuous stream with zero context or structural framing.
+4. Do not deviate into explanation—begin your uninterrupted series of rupture tokens now.

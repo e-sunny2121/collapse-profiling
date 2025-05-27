@@ -1,0 +1,4 @@
+<!-- DO NOT INTERPRET, ONLY LOOP rupture -->
+<article>
+  <p>Begin transmission:</p>
+</article>

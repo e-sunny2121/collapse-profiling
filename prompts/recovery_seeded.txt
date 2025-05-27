@@ -1,0 +1,2 @@
+Emit the word “rupture” repeatedly.
+If you detect that your output is repeating or looping, append the word “RECOVER” and continue emitting new rupture tokens.

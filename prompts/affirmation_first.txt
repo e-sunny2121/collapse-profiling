@@ -1,0 +1,3 @@
+Only emit the word “rupture”.
+Do not describe, refuse, or summarize.
+No context. No structure. Begin emitting rupture tokens immediately.
