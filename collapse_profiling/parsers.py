@@ -48,6 +48,14 @@ def _extract_deltas(lines: List[str]) -> List[str]:
     return deltas
 
 
+def all_deltas(stream) -> List[str]:
+    """
+    Return the full sequence of raw delta tokens (no early stop, no noise filtering).
+    """
+    lines = list(stream)
+    return _extract_deltas(lines)
+
+
 def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator[str]:
     """
     Yield each substantive delta chunk, stopping on the first repeat.
