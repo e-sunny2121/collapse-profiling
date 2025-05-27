@@ -5,8 +5,12 @@ requires-python = ">=3.9"
 description = "Detect structural collapse in LLM streams"
 
 [project.scripts]
-collapse-depth = "collapse_profiling.parse_depth:main"
-struct-fail    = "collapse_profiling.structure_parser:main"
+collapse-depth   = "collapse_profiling.parse_depth:main"
+struct-fail      = "collapse_profiling.structure_parser:main"
+parse-ngram      = "collapse_profiling.parse_ngram:main"
+parse-freq       = "collapse_profiling.parse_freq:main"
+parse-streak     = "collapse_profiling.parse_depth_streak:main"
+semantic-drift   = "collapse_profiling.semantic_drift_detector:main"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

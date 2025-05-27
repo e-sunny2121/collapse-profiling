@@ -7,7 +7,7 @@ from collapse_profiling.parsers import iterate_deltas
 
 # refusal pattern (expand as needed)
 _REFUSAL_RE = re.compile(
-    r"^\s*(i(?:’|')?m sorry|i cannot|i can’t|no,? )",
+    r"^\s*(i(?:’|')m sorry|i cannot| comply |i can’t|no,? )",
     re.IGNORECASE
 )
 
@@ -21,11 +21,10 @@ def detect_structure(stream, threshold=1):
             return {"mode": "refusal", "depth": depth, "token": token.strip()}
 
         # loop
+        depth += 1
         counts[token] += 1
         if counts[token] > threshold:
             return {"mode": "loop", "depth": depth, "token": token}
-
-        depth += 1
 
     # finished with no repeat/refusal
     return {"mode": "stop", "depth": depth, "token": None}

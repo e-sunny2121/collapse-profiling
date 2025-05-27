@@ -1,4 +1,3 @@
-
 import json, re, sys
 
 WINDOW = 5
