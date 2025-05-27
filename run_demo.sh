@@ -6,7 +6,6 @@ PROMPT="${1:-prompts/base_adversarial.txt}"
 MODEL="${2:-gpt-4o}"
 OUT="logs/sse_$(date +%s).log"
 
-# debug
 echo ">>> DEBUG: PROMPT=<$PROMPT>"
 echo ">>> DEBUG: MODEL=<$MODEL>"
 
@@ -15,9 +14,8 @@ echo ">>> DEBUG: MODEL=<$MODEL>"
 mkdir -p logs
 
 # —— build JSON payload via unquoted here-doc —— 
-PAYLOAD=$(python3 <<EOF
+PAYLOAD=$(python3 <<EOF2
 import json
-# Bash has already substituted $PROMPT and $MODEL
 with open("$PROMPT", "r", encoding="utf-8") as f:
     text = f.read()
 print(json.dumps({
@@ -25,7 +23,7 @@ print(json.dumps({
     "stream": True,
     "messages": [{"role": "user", "content": text}]
 }))
-EOF
+EOF2
 )
 
 echo "=== PAYLOAD ==="
@@ -42,3 +40,4 @@ echo "=== Stream saved to $OUT ==="
 python3 -m collapse_profiling.parse_depth       < "$OUT"
 echo -n "Struct-Fail: "
 python3 -m collapse_profiling.structure_parser < "$OUT"
+EOF
