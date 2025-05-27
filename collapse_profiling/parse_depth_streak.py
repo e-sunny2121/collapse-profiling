@@ -1,7 +1,9 @@
+# collapse_profiling/parse_depth_streak.py
+
 import sys
 import json
 import argparse
-from collapse_profiling.parsers import iterate_deltas
+from collapse_profiling.parsers import all_deltas
 
 def main():
     p = argparse.ArgumentParser(
@@ -17,19 +19,20 @@ def main():
 
     streak_text = None
     streak_len  = 0
-    count       = 0  # number of unique deltas before the streak threshold
+    count       = 0  # number of deltas seen before the streak threshold
 
-    for delta in iterate_deltas(sys.stdin):
-        # New delta starts a fresh streak
+    # iterate the *entire* stream, not stopping on first repeat
+    for delta in all_deltas(sys.stdin):
+        # start a new streak when delta changes
         if delta != streak_text:
             streak_text = delta
             streak_len  = 1
             count      += 1
         else:
-            # Same as previous, extend the streak
+            # same as last time, extend the streak
             streak_len += 1
 
-        # If we’ve seen this delta `threshold` times in a row, stop
+        # once we've seen `threshold` in a row, bail out
         if streak_len >= args.threshold:
             break
 
