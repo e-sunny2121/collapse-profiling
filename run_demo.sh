@@ -33,3 +33,6 @@ echo "=== Stream saved to $OUT ==="
 
 # 1) raw collapse‐depth
 python3 -m collapse_profiling.parse_depth       < "$OUT"
+
+echo -n "Struct‐Fail: "
+python3 -m collapse_profiling.structure_parser < "$OUT"
