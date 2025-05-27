@@ -10,7 +10,7 @@ OUT="logs/sse_$(date +%s).log"
 echo ">>> DEBUG: PROMPT=<$PROMPT>"
 echo ">>> DEBUG: MODEL=<$MODEL>"
 
-# sanity checks
+# sanity checks for me
 [[ -z "${OPENAI_API_KEY:-}" ]] && { echo "Missing OPENAI_API_KEY"; exit 1; }
 [[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
