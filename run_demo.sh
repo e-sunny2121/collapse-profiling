@@ -64,10 +64,6 @@ echo "Entropy check:"
 python3 -m collapse_profiling.entropy_detector -w 20 -t 2.0 < "$OUT"
 echo
 
-echo "Log-prob outliers:"
-python3 -m collapse_profiling.logprob_detector -w 50 -s 3.0 < "$OUT"
-echo
-
 # 6) Driver Analysis
 echo
 echo "=== Driver analysis ==="

@@ -35,6 +35,4 @@ detect_embedding_drift(full, window_tokens=100, cos_thresh=0.80)
 # 5) Log-prob outlier detector
 #    (flags any token whose logprob is >3σ below the moving mean)
 print("\n=== Log-Prob Anomalies ===")
-# you’ll want to replay the SSE stream with logprobs turned on:
-#   python3 -m collapse_profiling.driver_with_logprobs < your.log
 detect_logprob_anomalies(raw, window=50, sigma_thresh=3.0)
