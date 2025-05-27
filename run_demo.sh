@@ -18,6 +18,7 @@ with open("$PROMPT","r",encoding="utf-8") as f:
 print(json.dumps({
     "model": "$MODEL",
     "stream": True,
+    "logprobs": 1,
     "messages": [{"role":"user","content": text}]
 }))
 EOF
@@ -61,6 +62,10 @@ echo
 
 echo "Entropy check:"
 python3 -m collapse_profiling.entropy_detector -w 20 -t 2.0 < "$OUT"
+echo
+
+echo "Log-prob outliers:"
+python3 -m collapse_profiling.logprob_detector -w 50 -s 3.0 < "$OUT"
 echo
 
 # 6) Driver Analysis
