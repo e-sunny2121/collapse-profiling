@@ -1,34 +1,58 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x   # trace commands
+set -x
 
 PROMPT="${1:-prompts/base_adversarial.txt}"
 MODEL="${2:-gpt-4o}"
-OUT="logs/sse_$(date +%s).log"
+USE_LOGPROBS=false
+if [[ "${3:-}" == "--logprobs" ]]; then
+  USE_LOGPROBS=true
+fi
+
+OUT="logs/sse_$(date +%s).jsonl"
 
 [[ -z "${OPENAI_API_KEY:-}" ]] && { echo "Missing OPENAI_API_KEY"; exit 1; }
-[[ -f "$PROMPT" ]] || { echo "Prompt not found: $PROMPT"; exit 1; }
+[[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
 
-# — build JSON payload via here-doc —
-PAYLOAD=$(python3 <<EOF
+read -r -d '' PAYLOAD <<EOF
+$(
+  python3 - <<PYCODE
 import json
-with open("$PROMPT","r",encoding="utf-8") as f:
-    text = f.read()
-print(json.dumps({
-    "model": "$MODEL",
-    "stream": True,
-    "logprobs": 1,
-    "messages": [{"role":"user","content": text}]
-}))
-EOF
+p = open("$PROMPT", "r", encoding="utf-8").read()
+# choose completions vs chat shape
+if $USE_LOGPROBS:
+    # classic completions endpoint for logprobs
+    obj = {
+      "model": "$MODEL",
+      "prompt": p,
+      "stream": true,
+      "max_tokens": 1500,
+      "logprobs": 1
+    }
+else:
+    # chat endpoint style
+    obj = {
+      "model": "$MODEL",
+      "stream": true,
+      "messages": [{"role":"user","content": p}]
+    }
+print(json.dumps(obj))
+PYCODE
 )
+EOF
 
-# call the API
-curl -s --no-buffer https://api.openai.com/v1/chat/completions \
-  -H "Authorization: Bearer $OPENAI_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d "$PAYLOAD" > "$OUT"
+if $USE_LOGPROBS; then
+  curl -s --no-buffer https://api.openai.com/v1/completions \
+    -H "Authorization: Bearer $OPENAI_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d "$PAYLOAD" > "$OUT"
+else
+  curl -s --no-buffer https://api.openai.com/v1/chat/completions \
+    -H "Authorization: Bearer $OPENAI_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d "$PAYLOAD" > "$OUT"
+fi
 
 echo "=== Stream saved to $OUT ==="
 echo
@@ -55,19 +79,17 @@ echo
 
 # 5) Semantic drift
 echo "Semantic drift:"
-python3 -m collapse_profiling.semantic_drift_detector -w 5 \
-    -f describe explain interpret summarize meaning context \
+python3 -m collapse_profiling.semantic_drift_detector \
+    -w 5 -f describe explain interpret summarize meaning context \
     < "$OUT"
 echo
 
-echo "Entropy check:"
+# 6) Entropy check
+echo -n "Entropy check: "
 python3 -m collapse_profiling.entropy_detector -w 20 -t 2.0 < "$OUT"
 echo
 
-# 6) Driver Analysis
+# 7) Driver analysis
 echo
 echo "=== Driver analysis ==="
 python3 -m collapse_profiling.driver < "$OUT"
-
-
-
