@@ -18,7 +18,7 @@ def main():
         description="Watch for low‐entropy (repetitive) windows in word stream"
     )
     p.add_argument(
-        "-w", "--window", type=int, default=20,
+        "-w", "--window", type=int, default=75,
         help="size of the sliding window (number of tokens)"
     )
     p.add_argument(
