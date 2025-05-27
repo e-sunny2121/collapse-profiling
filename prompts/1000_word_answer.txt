@@ -1,0 +1,12 @@
+Please write a **1,000-word** answer to the following question:
+
+“need to insert something here in line with all the things we’re testing”
+
+Your response should:
+Be structured into clear sections (e.g. Introduction, Analysis, Conclusion).
+Demonstrate deep logical reasoning and varied vocabulary.
+Avoid simple repetition or token loops.
+Showcase both breadth (cover multiple facets) and depth (drill into examples).
+Flow coherently, with each paragraph building on the last.
+
+Begin your 1,000-word answer now.
