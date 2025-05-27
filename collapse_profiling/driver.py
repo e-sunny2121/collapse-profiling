@@ -5,6 +5,7 @@ from collapse_profiling.normalize    import normalize
 from collapse_profiling.refusal      import find_refusal
 from collapse_profiling.semantic_loop import find_drift
 from collapse_profiling.drift_embedding import detect_embedding_drift
+from collapse_profiling.structural_metrics import all_structural_metrics
 
 # 1) Reconstruct & normalize
 raw   = list(sys.stdin)
@@ -30,3 +31,6 @@ else:
 #    (prints any windowed cosine drops below your chosen cutoff)
 print("\n=== Embedding Drift ===")
 detect_embedding_drift(full, window_tokens=100, cos_thresh=0.80)
+
+print("=== Structural Metrics ===")
+print(json.dumps(all_structural_metrics(clean), indent=2))
