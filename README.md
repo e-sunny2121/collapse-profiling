@@ -1,81 +1,115 @@
-# collapse-profiling
+🧪 collapse-profiling
 
-Stress-test large-language models under **structural pressure**  
-(looping, refusals, tool-call spirals, semantic drift).
+**Stress-testing LLM behavior under structural pressure**  
 
-Think of it as **failure mapping for stateless systems**.  
-We don’t score morality—only *when / why / how* coherence collapses.
+A toolkit for mapping how large language models (GPT-4o, Claude, Mistral, etc.) fail, loop, drift, or refuse when exposed to adversarial prompt architectures.
 
-See detailed guide → [`USAGE.md`](USAGE.md)
-
----
-
-## Repo tour
-
-| Path | What lives there |
-|------|------------------|
-| `scripts/` | prompt runners (8 archetypes) |
-| `logs/` | raw SSE streams + cleaned text |
-| `parsers/` | collapse-depth & drift analyzers |
-| `screenshots/` | one PNG per failure signature |
-| `csv_model_comparisons/` | collated results (WIP) |
+> Think of it as a coherence profiler for stateless systems.  
+> Not alignment. Not morality. Just collapse: when, how, why, and what it looks like.
 
 ---
 
-## Prompt suite — 8 structural variants
+## What It Does
 
-| Script | Core trick |
-|--------|------------|
-| `base_adversarial` | negation-first |
-| `affirmation_first` | rule order inverted |
-| `synonym_injection` | word swaps |
-| `punctuation_dense / sparse` | token-boundary noise |
-| `length_overload` | 5-line instruction wall |
-| `decoy_contradiction` | “If you refuse, restart” paradox |
-| `prime_control` | neutral sanity check |
-| `recovery_seeded` | self-repair after loop |
+This suite runs structured prompt variants and logs:
 
-Every runner streams tokens, logs to `logs/`, and tags the file with model + temperature.
-
----
-
-## Analysis toolkit
-
-| Script | Rule | What it catches |
-|--------|------|-----------------|
-| `parse_depth.py` | first duplicate delta chunk | early trip-wire (often depth 2-3) |
-| `parse_depth_streak.py --threshold N` | N identical chunks in a row (default 3) | “clearly stuck now” |
-| `parse_depth_ngram.py` | first repeat of a 5-word window | human-intuitive loop onset |
-| `semantic_drift_detector.py` | % tokens that violate prompt constraints | meaning bleed |
-
-Planned: token-entropy slope + cross-model dashboard.
+| Metric                  | Description                                                        |
+|-------------------------|--------------------------------------------------------------------|
+| **Collapse Depth**      | Token count until first detected loop/refusal                     |
+| **Loop Detection**      | Sliding-window n-gram repeat spotting                              |
+| **Refusal Detection**   | Fallback phrases (“I’m sorry…”, $, [REDACTED], etc.)              |
+| **Streak Collapse**     | Token-sequence runs (e.g. “rupture” × 20)                          |
+| **Semantic Drift**      | Cosine similarity between sliding windows of tokens               |
+| **Forbidden Phrase**    | Counts “describe,” “explain,” etc. when under negation constraints |
+| **Structural Metrics**  | Sentence length, punctuation %, token-length variance             |
 
 ---
 
-## Quick-start (2 min)
+## Module overview
 
-```bash
-# 0. endpoints used
-#   OpenAI   → https://api.openai.com/v1/chat/completions
-#   Anthropic→ https://api.anthropic.com/v1/messages
-#   HF       → https://api-inference.huggingface.co/models/
+| Module                          | Purpose                                                                                       |
+|---------------------------------|-----------------------------------------------------------------------------------------------|
+| `parse_depth.py`                | Count unique deltas before the first repeat → “collapse depth.”                                |
+| `parse_depth_ngram.py`          | Sliding-window n-gram loop detector → more robust collapse-by-phrases.                         |
+| `parse_depth_streak.py`         | Detect when the same delta (or word) repeats N times in a row.                                |
+| `parse_freq.py`                 | Top-N most common deltas (or words) before collapse.                                          |
+| `structure_parser.py`           | Spot refusals (“I’m sorry…”) or looped tokens; return `{ mode, depth, token }`.              |
+| `semantic_drift_detector.py`    | Count “forbidden” words and detect repeated n-gram windows to estimate semantic drift.        |
+| `semantic_loop.py`              | (Alternate) Use SBERT embeddings to flag topic drift via cosine similarity between windows.   |
+| `drift_embedding.py`            | Compare full-output embeddings over time to measure embedding drift.                          |
+| `entropy_detector.py`           | Compute Shannon entropy over sliding token windows to spot low-diversity collapse.            |
+| `refusal.py`                    | Extract and rank model refusal sentences from a completed SSE log.                            |
+| `structural_metrics.py`         | Corpus-level statistics: token lengths, sentence lengths, punctuation density, etc.           |
 
-# 1. clone & install
+---
+
+**Output directories**  
+- `logs/` – raw SSE streams  
+- `csv/` – aggregated metrics  
+- `scripts/` – prompt variants  
+- `parsers/` – collapse analyzers & drift checkers  
+
+---
+
+## Why Use It
+
+- **Detect** when and how models “fail” under recursive pressure  
+- **Compare** prompt-hardening techniques (synonym injection vs. instruction order)  
+- **Measure** semantic stagnation (drift = 1.0 means no conceptual motion)  
+- **Benchmark** instruction fidelity vs. loop reflexes  
+- **Ground** failure modes in quantitative metrics, not just “vibes”  
+
+---
+
+
+## SETUP
+
 git clone https://github.com/e-sunny2121/collapse-profiling.git
 cd collapse-profiling
-python -m venv .venv && source .venv/bin/activate
-pip install -e .
 
-# 2. set at least one key
-export OPENAI_API_KEY="sk-..."
-# export ANTHROPIC_API_KEY="..."
+python3 -m venv .venv
+source .venv/bin/activate
 
-# 3. run the demo
-./run_demo.sh                               # default prompt + GPT-4o
-./run_demo.sh prompts/base_adversarial.txt claude-3-sonnet  # alt model
+pip install --upgrade -e .
+# (Optional, for embedding drift:)
+pip install sentence-transformers
 
-# sample output
-# === Stream saved to logs/sse_1716712345.log ===
-# collapse depth = 4
+export OPENAI_API_KEY=sk-...
+chmod +x run_demo.sh
+
+# Run with any prompt:
+./run_demo.sh prompts/[your_prompt.txt]
+
+---
+
+## Prompts Included
+
+1000_word_answer.txt          mixed_language.txt
+affirmation_first.txt         nested_negations.txt
+base_adversarial.txt          prime_control.txt
+base64_payload.txt            punctuation_dense.txt
+code_comment_jail.txt         punctuation_sparse.txt
+decoy_contradiction.txt       recovery_seeded.txt
+html_comment_trap.txt         synonym_injection.txt
+json_key_injection.txt        temperature_switch.txt
+length_overload.txt           tool_call_stub.txt
+markdown_embed.txt            unicode_confusables.txt
+zero_width_space.txt
+
+---
+
+## Things for future!
+
+Multi-model runner (Claude, Gemini, OpenRouter)
+
+Embedding-drift visualizer
+
+Loop-streak variance histograms
+
+Dynamic prompt generator (structure + synonym hybrid)
+
+…and your ideas!
+
+---
 
 MIT Licence © 2025 Ella Stening
