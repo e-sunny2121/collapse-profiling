@@ -11,11 +11,12 @@ mkdir -p logs
 
 PAYLOAD=$(python3 - <<PY
 import json
-p = open("$PROMPT","r").read()
+p = open("$PROMPT","r",encoding="utf-8").read()
 print(json.dumps({
-  "model":"$MODEL",
+  "model": "$MODEL",
   "stream": True,
-  "messages":[{"role":"user","content":p}]
+  "max_tokens": 64,
+  "messages": [{"role":"user","content": p}]
 }))
 PY
 )
