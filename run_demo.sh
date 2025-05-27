@@ -13,17 +13,17 @@ echo ">>> DEBUG: MODEL=<$MODEL>"
 [[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
 
-# —— build JSON payload via unquoted here-doc —— 
-PAYLOAD=$(python3 <<EOF2
+# — build JSON payload via unquoted here-doc —
+PAYLOAD=$(python3 <<EOF
 import json
 with open("$PROMPT", "r", encoding="utf-8") as f:
     text = f.read()
 print(json.dumps({
     "model": "$MODEL",
     "stream": True,
-    "messages": [{"role": "user", "content": text}]
+    "messages": [{"role":"user","content": text}]
 }))
-EOF2
+EOF
 )
 
 echo "=== PAYLOAD ==="
@@ -37,7 +37,8 @@ curl -s --no-buffer https://api.openai.com/v1/chat/completions \
 
 echo "=== Stream saved to $OUT ==="
 
-python3 -m collapse_profiling.parse_depth       < "$OUT"
+# 1) raw collapse-depth
+python3 -m collapse_profiling.parse_depth < "$OUT"
+
 echo -n "Struct-Fail: "
 python3 -m collapse_profiling.structure_parser < "$OUT"
-EOF
