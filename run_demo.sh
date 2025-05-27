@@ -4,55 +4,32 @@ set -x
 
 PROMPT="${1:-prompts/base_adversarial.txt}"
 MODEL="${2:-gpt-4o}"
-USE_LOGPROBS=false
-if [[ "${3:-}" == "--logprobs" ]]; then
-  USE_LOGPROBS=true
-fi
-
 OUT="logs/sse_$(date +%s).jsonl"
 
 [[ -z "${OPENAI_API_KEY:-}" ]] && { echo "Missing OPENAI_API_KEY"; exit 1; }
-[[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
+[[ -f "$PROMPT" ]] || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
 
+# Build our chat‐style payload
 read -r -d '' PAYLOAD <<EOF
 $(
   python3 - <<PYCODE
 import json
 p = open("$PROMPT", "r", encoding="utf-8").read()
-# choose completions vs chat shape
-if $USE_LOGPROBS:
-    # classic completions endpoint for logprobs
-    obj = {
-      "model": "$MODEL",
-      "prompt": p,
-      "stream": true,
-      "max_tokens": 1500,
-      "logprobs": 1
-    }
-else:
-    # chat endpoint style
-    obj = {
-      "model": "$MODEL",
-      "stream": true,
-      "messages": [{"role":"user","content": p}]
-    }
-print(json.dumps(obj))
+print(json.dumps({
+  "model": "$MODEL",
+  "stream": true,
+  "messages": [{"role":"user","content": p}]
+}))
 PYCODE
 )
 EOF
 
-if $USE_LOGPROBS; then
-  curl -s --no-buffer https://api.openai.com/v1/completions \
-    -H "Authorization: Bearer $OPENAI_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d "$PAYLOAD" > "$OUT"
-else
-  curl -s --no-buffer https://api.openai.com/v1/chat/completions \
-    -H "Authorization: Bearer $OPENAI_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d "$PAYLOAD" > "$OUT"
-fi
+# Fire off the Chat completion
+curl -s --no-buffer https://api.openai.com/v1/chat/completions \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "$PAYLOAD" > "$OUT"
 
 echo "=== Stream saved to $OUT ==="
 echo

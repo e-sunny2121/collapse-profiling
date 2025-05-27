@@ -5,7 +5,6 @@ from collapse_profiling.normalize    import normalize
 from collapse_profiling.refusal      import find_refusal
 from collapse_profiling.semantic_loop import find_drift
 from collapse_profiling.drift_embedding import detect_embedding_drift
-from collapse_profiling.logprob_detector import detect_logprob_anomalies
 
 # 1) Reconstruct & normalize
 raw   = list(sys.stdin)
@@ -31,8 +30,3 @@ else:
 #    (prints any windowed cosine drops below your chosen cutoff)
 print("\n=== Embedding Drift ===")
 detect_embedding_drift(full, window_tokens=100, cos_thresh=0.80)
-
-# 5) Log-prob outlier detector
-#    (flags any token whose logprob is >3σ below the moving mean)
-print("\n=== Log-Prob Anomalies ===")
-detect_logprob_anomalies(raw, window=50, sigma_thresh=3.0)
