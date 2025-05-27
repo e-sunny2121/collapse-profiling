@@ -1,13 +1,17 @@
 # collapse_profiling/parsers.py
 
 import json
+import re
 from typing import List, Iterator
+
+# regex for word‐level splitting
+_WORD_RE = re.compile(r"\b\w+\b")
 
 def _extract_deltas(lines: List[str]) -> List[str]:
     """
-    Core SSE-parsing: pull out each non-empty 'delta' string from the raw lines.
+    Core SSE‐parsing: pull out each non‐empty 'delta' string from the raw lines.
     """
-    deltas = []
+    deltas: List[str] = []
     for raw in lines:
         line = raw.strip()
         if line == "data: [DONE]":
@@ -25,14 +29,15 @@ def _extract_deltas(lines: List[str]) -> List[str]:
         except json.JSONDecodeError:
             continue
 
-        # OpenAI-style
+        # OpenAI‐style
         if "choices" in obj:
             delta = obj["choices"][0].get("delta", {}).get("content", "")
-        # Anthropic variants
+        # Anthropic: streaming deltas
         elif obj.get("type") == "content_block_delta":
             delta = obj["delta"].get("text", "")
         elif obj.get("type") == "content_block_start":
             delta = obj["content_block"].get("text", "")
+        # Fallback single‐message
         elif "completion" in obj:
             delta = obj["completion"].get("content", "")
         else:
@@ -41,9 +46,9 @@ def _extract_deltas(lines: List[str]) -> List[str]:
         if not isinstance(delta, str):
             continue
 
-        token = delta.strip()
-        if token:
-            deltas.append(token)
+        tok = delta.strip()
+        if tok:
+            deltas.append(tok)
 
     return deltas
 
@@ -70,23 +75,18 @@ def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator
     raw = _extract_deltas(lines)
 
     def is_noise(tok: str) -> bool:
-        # drop very short fragments
         if len(tok) < min_len:
             return True
-        # drop anything with zero alphanumeric chars (pure punctuation/markup)
         if not any(ch.isalnum() for ch in tok):
             return True
         return False
 
-    # Apply noise filter
     filtered = [tok for tok in raw if not is_noise(tok)]
 
-    # For long streams, require a bigger filtered pool
     dynamic_min = min_tokens
     if len(raw) > 20:
         dynamic_min = max(min_tokens, len(raw) // 4)
 
-    # Choose filtered if it meets the dynamic threshold; else raw
     tokens = filtered if len(filtered) >= dynamic_min else raw
 
     seen = set()
@@ -95,3 +95,20 @@ def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator
             return
         seen.add(tok)
         yield tok
+
+
+def iterate_words(stream) -> Iterator[str]:
+    """
+    Yield each word‐token (lowercased) in the full delta stream,
+    stopping on the first repeated word.
+    """
+    lines = list(stream)
+    raw = _extract_deltas(lines)
+
+    seen = set()
+    for frag in raw:
+        for w in _WORD_RE.findall(frag.lower()):
+            if w in seen:
+                return
+            seen.add(w)
+            yield w

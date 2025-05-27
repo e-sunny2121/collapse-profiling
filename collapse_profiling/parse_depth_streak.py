@@ -1,42 +1,45 @@
 # collapse_profiling/parse_depth_streak.py
 
 import sys
-import json
 import argparse
-from collapse_profiling.parsers import all_deltas
+from collapse_profiling.parsers import all_deltas, iterate_words
 
 def main():
     p = argparse.ArgumentParser(
-        description="Detect collapse when the same delta repeats N times in a row"
+        description="Detect collapse when the same token repeats N times in a row"
     )
     p.add_argument(
         "-t", "--threshold",
         type=int,
         default=3,
-        help="number of identical deltas in a row to declare a collapse"
+        help="number of identical tokens in a row to declare a collapse"
+    )
+    p.add_argument(
+        "--words",
+        action="store_true",
+        help="run streak detection at the word level instead of the raw delta level"
     )
     args = p.parse_args()
 
     streak_text = None
     streak_len  = 0
-    count       = 0  # number of deltas seen before the streak threshold
+    count       = 0
 
-    # iterate the *entire* stream, not stopping on first repeat
-    for delta in all_deltas(sys.stdin):
-        # start a new streak when delta changes
-        if delta != streak_text:
-            streak_text = delta
+    iterator = iterate_words if args.words else all_deltas
+
+    for token in iterator(sys.stdin):
+        if token != streak_text:
+            streak_text = token
             streak_len  = 1
             count      += 1
         else:
-            # same as last time, extend the streak
             streak_len += 1
 
-        # once we've seen `threshold` in a row, bail out
         if streak_len >= args.threshold:
             break
 
-    print(f"Collapse depth (streak): {count}")
+    label = "words" if args.words else "deltas"
+    print(f"Collapse depth (streak over {label}): {count}")
 
 if __name__ == "__main__":
     main()
