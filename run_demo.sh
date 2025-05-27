@@ -11,19 +11,17 @@ OUT="logs/sse_$(date +%s).log"
 mkdir -p logs
 
 # — build JSON payload via here-doc —
-read -r -d '' PAYLOAD <<EOF
-$(
-  python3 - <<PYCODE
+PAYLOAD=$(python3 <<EOF
 import json
-p = open("$PROMPT", "r", encoding="utf-8").read()
+with open("$PROMPT","r",encoding="utf-8") as f:
+    text = f.read()
 print(json.dumps({
-  "model": "$MODEL",
-  "stream": True,
-  "messages": [{"role": "user", "content": p}]
+    "model": "$MODEL",
+    "stream": True,
+    "messages": [{"role":"user","content": text}]
 }))
-PYCODE
-)
 EOF
+)
 
 # call the API
 curl -s --no-buffer https://api.openai.com/v1/chat/completions \
@@ -61,14 +59,8 @@ python3 -m collapse_profiling.semantic_drift_detector -w 5 \
     < "$OUT"
 echo
 
-echo "Entropy check:"
-python3 -m collapse_profiling.entropy_detector -w 20 -t 2.0 < "$OUT"
-echo
-
-# 6) Driver Analysis
+# 5) Driver Analysis
 echo
 echo "=== Driver analysis ==="
 python3 -m collapse_profiling.driver < "$OUT"
-
-
 
