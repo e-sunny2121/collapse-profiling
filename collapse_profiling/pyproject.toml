@@ -1,0 +1,16 @@
+[project]
+name = "collapse-profiling"
+version = "0.0.1"
+requires-python = ">=3.9"
+description = "Detect structural collapse in LLM streams"
+
+[project.scripts]
+collapse-depth = "collapse_profiling.parse_depth:main"
+struct-fail    = "collapse_profiling.structure_parser:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["collapse_profiling"]

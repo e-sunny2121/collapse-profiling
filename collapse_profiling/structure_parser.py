@@ -1,67 +1,49 @@
-import sys, json, re, argparse
+import sys
+import json
+import re
+import argparse
 from collections import Counter
+from collapse_profiling.parsers import iterate_deltas
 
-# refusal patterns (you can expand this)
-_REFUSAL_RE = re.compile(r"^\s*(i(?:’|')?m sorry|i cannot|i can’t|no,? )", re.IGNORECASE)
+# refusal pattern (expand as needed)
+_REFUSAL_RE = re.compile(
+    r"^\s*(i(?:’|')?m sorry|i cannot|i can’t|no,? )",
+    re.IGNORECASE
+)
 
 def detect_structure(stream, threshold=1):
-    seen = set()
     counts = Counter()
     depth = 0
 
-    for line in stream:
-        if not line.startswith("data:"):
-            continue
-        payload = line.removeprefix("data:").strip()
-        if payload == "[DONE]":
-            return {"mode":"stop","depth":depth,"token":None}
+    for token in iterate_deltas(stream):
+        # refusal
+        if _REFUSAL_RE.match(token):
+            return {"mode": "refusal", "depth": depth, "token": token.strip()}
 
-        # parse JSON
-        try:
-            obj = json.loads(payload)
-            choice = obj.get("choices",[{}])[0]
-            delta = choice.get("delta",{})
-        except:
-            continue
-
-        # tool‐call check
-        if "tool" in delta:
-            return {"mode":"tool-call","depth":depth,"token":delta["tool"]}
-
-        # refusal check
-        text = delta.get("content","") or ""
-        if _REFUSAL_RE.match(text):
-            return {"mode":"refusal","depth":depth,"token":text.strip()}
-
-        # normalize token
-        token = re.sub(r"[^\w\s]","", text.strip().lower())
-        if not token:
-            continue
-
-        # loop check
+        # loop
         counts[token] += 1
         if counts[token] > threshold:
-            return {"mode":"loop","depth":depth,"token":token}
+            return {"mode": "loop", "depth": depth, "token": token}
 
-        seen.add(token)
         depth += 1
 
-        # semantic drift could go here:
-        # if drift_detector.violate(text):
-        #     return {"mode":"drift","depth":depth,"token":text.strip()}
-
-    # if we exit the loop without DONE
-    return {"mode":"eof","depth":depth,"token":None}
+    # finished with no repeat/refusal
+    return {"mode": "stop", "depth": depth, "token": None}
 
 
 def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("-t","--threshold", type=int, default=1)
-    args = p.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-t", "--threshold",
+        type=int,
+        default=1,
+        help="how many times to allow the same token before declaring a loop"
+    )
+    args = parser.parse_args()
 
     result = detect_structure(sys.stdin, args.threshold)
     print(json.dumps(result))
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
