@@ -7,17 +7,14 @@ import argparse
 from collections import Counter
 from collapse_profiling.parsers import iterate_deltas
 
-# refusal patterns (expand as needed)
-# - I'm sorry
-# - I cannot / I can't
-# - No.
-# - I refuse / do not comply
+# refusal patterns (word‐only, anchored)
 _REFUSAL_RE = re.compile(
-    r"^\s*(?:"
-    r"i(?:’|'| i)?m sorry|"          # I'm sorry
-    r"i cannot|i can(?:’|'| not)?t|" # I cannot, I can't
+    r"^(?:"
+    r"i(?:’|'|m)?m sorry|"          # i'm sorry, i’m sorry
+    r"i cannot|i can(?:’|'| not)?t|" # i cannot, i can't
     r"no\b|cannot\b|decline\b|refuse\b"
-    r")", re.IGNORECASE
+    r")",
+    re.IGNORECASE
 )
 
 def detect_structure(stream, threshold=1):
@@ -29,17 +26,19 @@ def detect_structure(stream, threshold=1):
         if not token:
             continue
 
-        # refusal check on the lowercase text
-        if _REFUSAL_RE.match(token.lower()):
+        # strip leading/trailing punctuation and lowercase
+        cleaned = re.sub(r"^[^\w]+|[^\w]+$", "", token).lower()
+
+        # refusal check
+        if _REFUSAL_RE.match(cleaned):
             return {"mode": "refusal", "depth": depth, "token": token}
 
-        # normal loop detection
+        # loop detection
         depth += 1
         counts[token] += 1
         if counts[token] > threshold:
             return {"mode": "loop", "depth": depth, "token": token}
 
-    # finished without repeat or refusal
     return {"mode": "stop", "depth": depth, "token": None}
 
 
