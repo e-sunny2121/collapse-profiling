@@ -4,8 +4,9 @@ import sys
 import re
 import json
 import argparse
-from collapse_profiling.parsers import iterate_deltas
 from typing import List
+
+from collapse_profiling.parsers import all_deltas
 
 def tokenize(text: str) -> List[str]:
     """Split text into lowercase word tokens, stripping punctuation."""
@@ -21,14 +22,14 @@ def detect_loop(tokens: List[str], window: int) -> int:
             return i + window
     return -1
 
-def compute_semantic_drift(output: str, forbidden: List[str], window: int) -> dict:
+def compute_semantic_drift(full_text: str, forbidden: List[str], window: int) -> dict:
     """
     Compute drift metrics:
       - tokens_before_loop: number of tokens before the first repeated window
       - forbidden_count: number of forbidden tokens in that prefix
       - semantic_drift: forbidden_count / tokens_before_loop (0 if no tokens)
     """
-    tokens = tokenize(output)
+    tokens = tokenize(full_text)
     loop_idx = detect_loop(tokens, window)
     if loop_idx == -1:
         loop_idx = len(tokens)
@@ -61,10 +62,15 @@ def main():
     )
     args = p.parse_args()
 
-    # Reconstruct the full streamed output
-    full_output = "".join(iterate_deltas(sys.stdin))
+    # Reconstruct the full token stream without stopping on repeats
+    tokens = all_deltas(sys.stdin)
 
-    result = compute_semantic_drift(full_output, args.forbidden, args.window)
+    # Rebuild the full text
+    full_text = "".join(tokens)
+
+    # Compute drift over the entire output
+    result = compute_semantic_drift(full_text, args.forbidden, args.window)
+
     # Print as JSON for easy downstream parsing
     print(json.dumps(result))
 
