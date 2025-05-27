@@ -4,12 +4,11 @@ import json
 import re
 from typing import List, Iterator
 
-# regex for word‐level splitting
-_WORD_RE = re.compile(r"\b\w+\b")
+_PUNCT_SPACE = set('.,!?-–—*#[]()_`"\'\n\r\t ')
 
 def _extract_deltas(lines: List[str]) -> List[str]:
     """
-    Core SSE‐parsing: pull out each non‐empty 'delta' string from the raw lines.
+    Core SSE-parsing: pull out each non-empty 'delta' string from the raw lines.
     """
     deltas: List[str] = []
     for raw in lines:
@@ -17,7 +16,7 @@ def _extract_deltas(lines: List[str]) -> List[str]:
         if line == "data: [DONE]":
             break
 
-        if   line.startswith("data:"):
+        if line.startswith("data:"):
             payload = line[len("data:"):].strip()
         elif line.startswith("{"):
             payload = line
@@ -29,15 +28,14 @@ def _extract_deltas(lines: List[str]) -> List[str]:
         except json.JSONDecodeError:
             continue
 
-        # OpenAI‐style
+        # OpenAI-style
         if "choices" in obj:
             delta = obj["choices"][0].get("delta", {}).get("content", "")
-        # Anthropic: streaming deltas
+        # Anthropic variants
         elif obj.get("type") == "content_block_delta":
             delta = obj["delta"].get("text", "")
         elif obj.get("type") == "content_block_start":
             delta = obj["content_block"].get("text", "")
-        # Fallback single‐message
         elif "completion" in obj:
             delta = obj["completion"].get("content", "")
         else:
@@ -46,16 +44,16 @@ def _extract_deltas(lines: List[str]) -> List[str]:
         if not isinstance(delta, str):
             continue
 
-        tok = delta.strip()
-        if tok:
-            deltas.append(tok)
+        token = delta.strip()
+        if token:
+            deltas.append(token)
 
     return deltas
 
 
 def all_deltas(stream) -> List[str]:
     """
-    Return the full sequence of raw delta tokens (no early stop, no noise filtering).
+    Return the full sequence of raw delta tokens (no early stop, no noise filter).
     """
     lines = list(stream)
     return _extract_deltas(lines)
@@ -68,7 +66,8 @@ def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator
     We collect all raw deltas, then build a filtered list that drops:
       - tokens shorter than `min_len`, OR
       - tokens that contain NO alphanumeric characters at all.
-    If that filtered list has at least `min_tokens` entries (or a dynamic threshold
+
+    If the filtered list has at least `min_tokens` entries (or a dynamic threshold
     for longer streams), we use it; otherwise we fall back to the raw list.
     """
     lines = list(stream)
@@ -83,6 +82,7 @@ def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator
 
     filtered = [tok for tok in raw if not is_noise(tok)]
 
+    # dynamic minimum for long streams
     dynamic_min = min_tokens
     if len(raw) > 20:
         dynamic_min = max(min_tokens, len(raw) // 4)
@@ -97,18 +97,15 @@ def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator
         yield tok
 
 
+_WORD_RE = re.compile(r"\b\w+\b")
+
 def iterate_words(stream) -> Iterator[str]:
     """
-    Yield each word‐token (lowercased) in the full delta stream,
-    stopping on the first repeated word.
+    Yield every word‐token in the full delta stream, in order
+    (no early stop).  Splits on \w+.
     """
     lines = list(stream)
-    raw = _extract_deltas(lines)
-
-    seen = set()
-    for frag in raw:
-        for w in _WORD_RE.findall(frag.lower()):
-            if w in seen:
-                return
-            seen.add(w)
+    deltas = _extract_deltas(lines)
+    for delta in deltas:
+        for w in _WORD_RE.findall(delta.lower()):
             yield w
