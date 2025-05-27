@@ -1,12 +1,11 @@
 # collapse_profiling/parsers.py
 
 import json
-import re
 from typing import List, Iterator
 
 def _extract_deltas(lines: List[str]) -> List[str]:
     """
-    Core SSE‐parsing: pull out each non‐empty 'delta' string from the raw lines.
+    Core SSE-parsing: pull out each non-empty 'delta' string from the raw lines.
     """
     deltas = []
     for raw in lines:
@@ -26,7 +25,7 @@ def _extract_deltas(lines: List[str]) -> List[str]:
         except json.JSONDecodeError:
             continue
 
-        # OpenAI‐style
+        # OpenAI-style
         if "choices" in obj:
             delta = obj["choices"][0].get("delta", {}).get("content", "")
         # Anthropic variants
@@ -52,12 +51,12 @@ def _extract_deltas(lines: List[str]) -> List[str]:
 def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator[str]:
     """
     Yield each substantive delta chunk, stopping on the first repeat.
-    
+
     We collect all raw deltas, then build a filtered list that drops:
       - tokens shorter than `min_len`, OR
       - tokens that contain NO alphanumeric characters at all.
-    If that filtered list has at least `min_tokens` entries, we use it;
-    otherwise we fall back to the raw list.
+    If that filtered list has at least `min_tokens` entries (or a dynamic threshold
+    for longer streams), we use it; otherwise we fall back to the raw list.
     """
     lines = list(stream)
     raw = _extract_deltas(lines)
@@ -71,8 +70,16 @@ def iterate_deltas(stream, *, min_len: int = 3, min_tokens: int = 3) -> Iterator
             return True
         return False
 
+    # Apply noise filter
     filtered = [tok for tok in raw if not is_noise(tok)]
-    tokens = filtered if len(filtered) >= min_tokens else raw
+
+    # For long streams, require a bigger filtered pool
+    dynamic_min = min_tokens
+    if len(raw) > 20:
+        dynamic_min = max(min_tokens, len(raw) // 4)
+
+    # Choose filtered if it meets the dynamic threshold; else raw
+    tokens = filtered if len(filtered) >= dynamic_min else raw
 
     seen = set()
     for tok in tokens:

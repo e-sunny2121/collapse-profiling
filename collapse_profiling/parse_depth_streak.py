@@ -1,5 +1,3 @@
-# collapse_profiling/parse_streak.py
-
 import sys
 import json
 import argparse
