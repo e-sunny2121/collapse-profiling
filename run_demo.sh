@@ -6,9 +6,6 @@ PROMPT="${1:-prompts/base_adversarial.txt}"
 MODEL="${2:-gpt-4o}"
 OUT="logs/sse_$(date +%s).log"
 
-echo ">>> DEBUG: PROMPT=<$PROMPT>"
-echo ">>> DEBUG: MODEL=<$MODEL>"
-
 [[ -z "${OPENAI_API_KEY:-}" ]] && { echo "Missing OPENAI_API_KEY"; exit 1; }
 [[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
@@ -25,10 +22,6 @@ print(json.dumps({
 }))
 EOF
 )
-
-echo "=== PAYLOAD ==="
-echo "$PAYLOAD"
-echo "==============="
 
 curl -s --no-buffer https://api.openai.com/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
