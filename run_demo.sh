@@ -11,17 +11,19 @@ OUT="logs/sse_$(date +%s).log"
 mkdir -p logs
 
 # — build JSON payload via here-doc —
-PAYLOAD=$(python3 <<EOF
+read -r -d '' PAYLOAD <<EOF
+$(
+  python3 - <<PYCODE
 import json
-with open("$PROMPT","r",encoding="utf-8") as f:
-    text = f.read()
+p = open("$PROMPT", "r", encoding="utf-8").read()
 print(json.dumps({
-    "model": "$MODEL",
-    "stream": True,
-    "messages": [{"role":"user","content": text}]
+  "model": "$MODEL",
+  "stream": True,
+  "messages": [{"role": "user", "content": p}]
 }))
-EOF
+PYCODE
 )
+EOF
 
 # call the API
 curl -s --no-buffer https://api.openai.com/v1/chat/completions \
