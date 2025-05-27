@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, re
+import sys, re, json
 from collapse_profiling.full_text   import reconstruct
 from collapse_profiling.normalize    import normalize
 from collapse_profiling.refusal      import find_refusal
