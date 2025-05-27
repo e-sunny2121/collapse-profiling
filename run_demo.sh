@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x    # <-- turn on tracing so we see every command as it runs
 
 PROMPT="${1:-prompts/base_adversarial.txt}"
 MODEL="${2:-gpt-4o}"
 OUT="logs/sse_$(date +%s).log"
 
+# debug:
+echo ">>> DEBUG: PROMPT=<$PROMPT>"
+echo ">>> DEBUG: MODEL=<$MODEL>"
+
 [[ -z "${OPENAI_API_KEY:-}" ]] && { echo "Missing OPENAI_API_KEY"; exit 1; }
 [[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
+
+echo ">>> DEBUG: about to build payload with:"
+echo "    python3 -c '<python-code>' _ \"$PROMPT\" \"$MODEL\""
 
 # Build JSON payload in a single python -c, passing real args
 PAYLOAD=$(python3 -c '
