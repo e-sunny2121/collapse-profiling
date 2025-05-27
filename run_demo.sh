@@ -9,18 +9,19 @@ OUT="logs/sse_$(date +%s).log"
 [[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
 
-
-
+# Build JSON payload in a single python -c, passing real args
 PAYLOAD=$(python3 -c '
 import json, sys
-p = open(sys.argv[1], "r").read()
+prompt_path = sys.argv[1]
+model_name  = sys.argv[2]
+with open(prompt_path, "r", encoding="utf-8") as f:
+    content = f.read()
 print(json.dumps({
-    "model": sys.argv[2],
-    "stream": True,
-    "messages": [{"role": "user", "content": p}]
+    "model":    model_name,
+    "stream":   True,
+    "messages": [{"role":"user", "content": content}]
 }))
 ' _ "$PROMPT" "$MODEL")
-
 
 echo "=== PAYLOAD ==="
 echo "$PAYLOAD"
