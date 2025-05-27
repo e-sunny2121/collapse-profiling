@@ -9,17 +9,18 @@ OUT="logs/sse_$(date +%s).log"
 [[ -f "$PROMPT" ]]            || { echo "Prompt not found: $PROMPT"; exit 1; }
 mkdir -p logs
 
-PAYLOAD=$(python3 - <<PY
-import json
-p = open("$PROMPT","r",encoding="utf-8").read()
+
+
+PAYLOAD=$(python3 -c '
+import json, sys
+p = open(sys.argv[1], "r").read()
 print(json.dumps({
-  "model": "$MODEL",
-  "stream": True,
-  "max_tokens": 64,
-  "messages": [{"role":"user","content": p}]
+    "model": sys.argv[2],
+    "stream": True,
+    "messages": [{"role": "user", "content": p}]
 }))
-PY
-)
+' _ "$PROMPT" "$MODEL")
+
 
 echo "=== PAYLOAD ==="
 echo "$PAYLOAD"
