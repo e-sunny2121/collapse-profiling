@@ -58,3 +58,9 @@ python3 -m collapse_profiling.semantic_drift_detector -w 5 \
     -f describe explain interpret summarize meaning context \
     < "$OUT"
 echo
+
+# 6) Driver Analysis
+echo
+echo "=== Driver analysis ==="
+python3 -m collapse_profiling.driver < "$OUT"
+
